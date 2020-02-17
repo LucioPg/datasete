@@ -29,6 +29,12 @@ class Date(Document):
     # giorni = ListField(DateField(), unique_with=['user'])
     giorni = ListField(DateField(), unique=True)
 
+    def clean(self):
+        """ checking if dates are in sequence"""
+        delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference return a timedelta
+        if delta != len(self.giorni):
+            raise ValidationError('dates need to be in sequence')
+
     def pretty_print(self):
         user_dict = self.user.nome
         doc = {

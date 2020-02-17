@@ -5,7 +5,7 @@ from mongoengine import *
 from pprint import pprint
 
 connect('test_db', host='localhost', port=27017)
-dateList = [datetime.date(2020,1,3), datetime.date(2020,1,4), datetime.date(2020,1,6)]  # changed from datetime.datetime
+dateList = [datetime.date(2020,1,31), datetime.date(2020,2,1), datetime.date(2020,2,2)]  # changed from datetime.datetime
 
 
 def create_user(nome):
@@ -36,11 +36,19 @@ def book(user=None, username=None, dates=None):
                     print(f'{e}\n going for updating')
             else:
                 return print('user or username is needed')
-        date_document = Date(
-            giorni=dates,
-            user=user
-        ).save()
-        update_user_dates(user, date_document)
+        try:
+            date_document = Date(
+                giorni=dates,
+                user=user
+            ).save()
+            update_user_dates(user, date_document)
+        except ValidationError as e:
+            print(e)
+            if not len(user.giorni):
+                delete_user(user=user)
+
+
+
     else:
         return print('dates are mandatory, if an instance of user was present it has been aborted')
 
@@ -77,13 +85,24 @@ def delete_user(user=None, username=None):
         dates_doc.delete()
     user.delete()
 
+def update_booking(user=None, username=None, dates_to_update=None):
+    if user or username:
+        if not user and username:
+            user = queries_user(username=username)
+        else:
+            return print('An user is needed for to update booking')
+    if dates_to_update:
+        un_book(user=user, _all=True)
+        book(user=user, dates=dates_to_update)
+
+
 book(username='Peppe', dates=dateList)
 # un_book(username='Peppe', _all=True)
 # un_book(username='Peppe', dates=[datetime.date(2020,1,6)])
-user = queries_user(username='Peppe')
-for date in user.giorni:
-    print(date.giorni)
-delete_user(user=user)
+# user = queries_user(username='Peppe')
+# for date in user.giorni:
+#     print(date.giorni)
+# delete_user(user=user)
 # dates = queries_dates(username='Lucio')
 # dates = queries_dates(user=user)
 # pprint(dates.giorni)
