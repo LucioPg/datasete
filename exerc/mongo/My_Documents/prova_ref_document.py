@@ -26,7 +26,8 @@ class Date(Document):
     # user = ReferenceField('User')
     user = ReferenceField('User')
     # user = ReferenceField(User, dbref=False, reverse_delete_rule=CASCADE)
-    giorni = ListField(DateField())
+    # giorni = ListField(DateField(), unique_with=['user'])
+    giorni = ListField(DateField(), unique=True)
 
     def pretty_print(self):
         user_dict = self.user.nome

@@ -42,7 +42,7 @@ def book(user=None, username=None, dates=None):
         return print('dates are mandatory, if an instance of user was present it has been aborted')
 
 
-book(username='Lucio', dates=dateList)
+book(username='Peppe', dates=dateList)
 
 
 # def save(doc):
