@@ -19,8 +19,8 @@ class User(Document):
     # nome_telefono = StringField(default='', unique=True)
     nome_telefono = StringField(required=True, unique=True)
 
-    # def clean(self):
-    #     self.nome_telefono = self.nome + self.telefono
+    def clean(self):
+        self.nome_telefono = self.nome + self.telefono
 
     def pretty_print(self):
         doc = {

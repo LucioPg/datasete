@@ -7,12 +7,12 @@ from pprint import pprint
 connect('test_db', host='localhost', port=27017)
 print(User().list_indexes())
 
-# dateList = [datetime.date(2020,8,31), datetime.date(2020,9,1), datetime.date(2020,9,2)]  # changed from datetime.datetime
-dateList = [datetime.date(2020,1,31), datetime.date(2020,2,1), datetime.date(2020,2,2)]  # changed from datetime.datetime
+dateList = [datetime.date(2020,8,31), datetime.date(2020,9,1), datetime.date(2020,9,2)]  # changed from datetime.datetime
+# dateList = [datetime.date(2020,1,31), datetime.date(2020,2,1), datetime.date(2020,2,2)]  # changed from datetime.datetime
 
 
 def create_user(nome, tel):
-    user = User(nome=nome, telefono=tel, nome_telefono=nome + tel)
+    user = User(nome=nome, telefono=tel)
     # user = User(nome=nome, telefono=tel)
     # return User(nome=nome, telefono=tel)  # it does not save for checking for dates during booking
     return user  # it does not save for checking for dates during booking
@@ -105,7 +105,7 @@ def update_booking(user=None, username=None, dates_to_update=None):
         book(user=user, dates=dates_to_update)
 
 # delete_user(username='Peppe')
-# book(username='Peppe', telefono='6', dates=dateList)
+book(username='Peppe', telefono='111', dates=dateList)
 # un_book(username='Peppe', _all=True)
 # un_book(username='Peppe', dates=[datetime.date(2020,1,6)])
 # user = queries_user(username='Peppe')
