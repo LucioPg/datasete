@@ -1,14 +1,16 @@
 from mongo.My_Documents.prova_ref_document import *
 # from datetime import datetime
 import datetime
+from PyQt5.QtCore import QDate
 from mongoengine import *
 from pprint import pprint
 
 connect('test_db', host='localhost', port=27017)
 print(User().list_indexes())
 
-dateList = [datetime.date(2020,8,31), datetime.date(2020,9,1), datetime.date(2020,9,2)]  # changed from datetime.datetime
+# dateList = [datetime.date(2020,8,31), datetime.date(2020,9,1), datetime.date(2020,9,2)]  # changed from datetime.datetime
 # dateList = [datetime.date(2020,1,31), datetime.date(2020,2,1), datetime.date(2020,2,2)]  # changed from datetime.datetime
+dateList = [QDate(2020,1,31), QDate(2020,2,1), QDate(2020,2,2)]  # changed from datetime.datetime
 
 
 def create_user(nome, tel):
@@ -104,8 +106,8 @@ def update_booking(user=None, username=None, dates_to_update=None):
         un_book(user=user, _all=True)
         book(user=user, dates=dates_to_update)
 
-# delete_user(username='Peppe')
-book(username='Peppe', telefono='111', dates=dateList)
+# delete_user(username='Peppe', telefono='111')
+book(username='Pepped', telefono='11d1', dates=dateList)
 # un_book(username='Peppe', _all=True)
 # un_book(username='Peppe', dates=[datetime.date(2020,1,6)])
 # user = queries_user(username='Peppe')

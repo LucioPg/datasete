@@ -5,6 +5,29 @@ from datetime import datetime
 import string
 
 
+class QDateField(DateTimeField):
+    """ Custom field to manage PyQt5.QtCore.QDate object"""
+    def validate(self, value):
+        new_value = self.to_mongo(value)
+        if not isinstance(new_value, datetime):
+            self.error('cannot parse date "%s"' % value)
+
+    def to_mongo(self, value):
+        """ the QDate needs to be converted into datetime before sending to mongo"""
+        pyValue = value.toPyDate()
+        return datetime(pyValue.year, pyValue.month, pyValue.day)
+
+    def to_python(self, value):
+        print(value)
+        if not isinstance(value, QDate):
+            qdate = QDate(value.year, value.month, value.day)
+            return qdate
+        else:
+            return value
+
+    def prepare_query_value(self, op, value):
+        """ maybe useless"""
+        return super(QDateField, self).prepare_query_value(op, self.to_mongo(value))
 
 
 class User(Document):
@@ -40,11 +63,13 @@ class Date(Document):
     user = ReferenceField('User')
     # user = ReferenceField(User, dbref=False, reverse_delete_rule=CASCADE)
     # giorni = ListField(DateField(), unique_with=['user'])
-    giorni = ListField(DateField(), unique=True)
+    giorni = ListField(QDateField(), unique=True)
 
     def clean(self):
         """ checking if dates are in sequence"""
-        delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference returns a timedelta
+        # delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference returns a timedelta
+        delta = abs(max(self.giorni).daysTo(min(self.giorni))) + 1
+        print(delta)
         if delta != len(self.giorni):
             raise ValidationError('dates need to be in sequence')
 
