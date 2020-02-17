@@ -1,10 +1,11 @@
 from mongo.My_Documents.prova_ref_document import *
-from datetime import datetime
+# from datetime import datetime
+import datetime
 from mongoengine import *
 from pprint import pprint
 
 connect('test_db', host='localhost', port=27017)
-dateList = [datetime(2020,3,3), datetime(2020,3,4), datetime(2020,3,6)]
+dateList = [datetime.date(2020,1,3), datetime.date(2020,1,4), datetime.date(2020,1,6)]  # changed from datetime.datetime
 
 
 def create_user(nome):
@@ -13,7 +14,9 @@ def create_user(nome):
 def queries_user(username):
     return User.objects.get(nome=username)
 
-def queries_dates(user):
+def queries_dates(user=None, username=None):
+    if not user and username:
+        user = queries_user(username=username)
     return Date.objects.get(user=user)
 
 def update_user_dates(user, dates):
@@ -42,28 +45,52 @@ def book(user=None, username=None, dates=None):
         return print('dates are mandatory, if an instance of user was present it has been aborted')
 
 
+def un_book(user=None, username=None, dates=None, _all=False):
+    if user or username:
+        if not user and username:
+            user = queries_user(username=username)
+        if _all:  # check if delete all the dates
+            for date in Date.objects(user=user):
+                user.giorni.remove(date)  # removing references in user document
+                date.delete()
+            user.save()
+        else:
+            if dates:
+                for date_doc in Date.objects(user=user):  # search for dates documents
+                    for data in dates:
+                        if data in date_doc.giorni:
+                            date_doc.giorni.remove(data)  # remove the dates passed into the list
+                            for user_date in user.giorni:  # removing references in user document
+                                if data in user_date.giorni:
+                                    user_date.giorni.remove(data)
+                    date_doc.save()
+                user.save()
+
+
+            else:
+                return print('nothing to unbook')
+
+def delete_user(user=None, username=None):
+    if not user and username:
+        user = queries_user(username=username)
+    for dates_doc in user.giorni:
+        dates_doc.delete()
+    user.delete()
+
 book(username='Peppe', dates=dateList)
-
-
-# def save(doc):
-#     doc.save()
-
-# user = User(
-#     nome='Lucio'
-# ).save()
+# un_book(username='Peppe', _all=True)
+# un_book(username='Peppe', dates=[datetime.date(2020,1,6)])
+user = queries_user(username='Peppe')
+for date in user.giorni:
+    print(date.giorni)
+delete_user(user=user)
+# dates = queries_dates(username='Lucio')
+# dates = queries_dates(user=user)
+# pprint(dates.giorni)
+# for obj in User.objects():
+#     print('#'*10)
+#     obj.pretty_print()
 #
-# user = User.objects.get(nome='Lucio')
-# date = Date.objects.get(user=user)
-# user.giorni = date
-# user.save()
-# date = Date(
-#     giorni=dateList,
-#     user=user
-# ).save()
-for obj in User.objects():
-    print('#'*10)
-    obj.pretty_print()
-
-for obj in Date.objects():
-    print('#'*10)
-    obj.pretty_print()
+# for obj in Date.objects():
+#     print('#'*10)
+#     obj.pretty_print()

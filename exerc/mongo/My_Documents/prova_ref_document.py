@@ -11,7 +11,7 @@ class User(Document):
     """ un utente può possedere molte date"""
 
     # giorni = ReferenceField('Date')
-    giorni = ListField(ReferenceField('Date'))
+    giorni = ListField(ReferenceField('Date'), reverse_delete_rule=CASCADE)
     nome = StringField(required=True, unique=True)
 
     def pretty_print(self):
