@@ -12,7 +12,15 @@ class User(Document):
 
     # giorni = ReferenceField('Date')
     giorni = ListField(ReferenceField('Date'), reverse_delete_rule=CASCADE)
-    nome = StringField(required=True, unique=True)
+    # nome = StringField(required=True, unique=True)
+    nome = StringField(required=True)
+    # telefono = StringField(required=True, unique_with=['nome'])
+    telefono = StringField(required=True)
+    # nome_telefono = StringField(default='', unique=True)
+    nome_telefono = StringField(required=True, unique=True)
+
+    # def clean(self):
+    #     self.nome_telefono = self.nome + self.telefono
 
     def pretty_print(self):
         doc = {
@@ -21,6 +29,11 @@ class User(Document):
         }
         return pprint(doc)
 
+    # meta = {
+    #     'indexes': [
+    #         'nome_telefono'
+    #     ]
+    # }
 class Date(Document):
     """ molte date possono appartenere ad un utente"""
     # user = ReferenceField('User')
@@ -31,7 +44,7 @@ class Date(Document):
 
     def clean(self):
         """ checking if dates are in sequence"""
-        delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference return a timedelta
+        delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference returns a timedelta
         if delta != len(self.giorni):
             raise ValidationError('dates need to be in sequence')
 

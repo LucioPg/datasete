@@ -5,14 +5,23 @@ from mongoengine import *
 from pprint import pprint
 
 connect('test_db', host='localhost', port=27017)
+print(User().list_indexes())
+
+# dateList = [datetime.date(2020,8,31), datetime.date(2020,9,1), datetime.date(2020,9,2)]  # changed from datetime.datetime
 dateList = [datetime.date(2020,1,31), datetime.date(2020,2,1), datetime.date(2020,2,2)]  # changed from datetime.datetime
 
 
-def create_user(nome):
-    return User(nome=nome)  # it does not save for checking for dates during booking
+def create_user(nome, tel):
+    user = User(nome=nome, telefono=tel, nome_telefono=nome + tel)
+    # user = User(nome=nome, telefono=tel)
+    # return User(nome=nome, telefono=tel)  # it does not save for checking for dates during booking
+    return user  # it does not save for checking for dates during booking
 
-def queries_user(username):
-    return User.objects.get(nome=username)
+def queries_user(username, telefono=None):
+    if telefono:
+        return User.objects.get(nome=username, telefono=telefono)
+    else:
+        return User.objects.get(nome=username)
 
 def queries_dates(user=None, username=None):
     if not user and username:
@@ -23,17 +32,17 @@ def update_user_dates(user, dates):
     user.giorni.append(dates)
     user.save()
 
-def book(user=None, username=None, dates=None):
+def book(user=None, username=None, telefono=None, dates=None):
 
     if dates:  # it checks if dates are present before confirm the creation of an useless user
         if not user:
-            if username:
+            if username and telefono:
                 try:
-                    user = create_user(nome=username)
+                    user = create_user(nome=username, tel=telefono)
                     user.save()  # user needs to be saved before creating a referenced doc
                 except Exception as e:
-                    user = queries_user(username)
                     print(f'{e}\n going for updating')
+                    user = queries_user(username=username, telefono=telefono)
             else:
                 return print('user or username is needed')
         try:
@@ -42,7 +51,7 @@ def book(user=None, username=None, dates=None):
                 user=user
             ).save()
             update_user_dates(user, date_document)
-        except ValidationError as e:
+        except Exception as e:
             print(e)
             if not len(user.giorni):
                 delete_user(user=user)
@@ -53,7 +62,7 @@ def book(user=None, username=None, dates=None):
         return print('dates are mandatory, if an instance of user was present it has been aborted')
 
 
-def un_book(user=None, username=None, dates=None, _all=False):
+def un_book(user=None, username=None, telefono=None, dates=None, _all=False):
     if user or username:
         if not user and username:
             user = queries_user(username=username)
@@ -78,9 +87,9 @@ def un_book(user=None, username=None, dates=None, _all=False):
             else:
                 return print('nothing to unbook')
 
-def delete_user(user=None, username=None):
+def delete_user(user=None, username=None, telefono=None):
     if not user and username:
-        user = queries_user(username=username)
+        user = queries_user(username=username, telefono=telefono)
     for dates_doc in user.giorni:
         dates_doc.delete()
     user.delete()
@@ -95,8 +104,8 @@ def update_booking(user=None, username=None, dates_to_update=None):
         un_book(user=user, _all=True)
         book(user=user, dates=dates_to_update)
 
-
-book(username='Peppe', dates=dateList)
+# delete_user(username='Peppe')
+# book(username='Peppe', telefono='6', dates=dateList)
 # un_book(username='Peppe', _all=True)
 # un_book(username='Peppe', dates=[datetime.date(2020,1,6)])
 # user = queries_user(username='Peppe')
