@@ -187,11 +187,13 @@ class DatePrenotazioni(Document):
     def check_sequence_for_days(self):
         """ checking if dates are in sequence"""
         # delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference returns a timedelta
-        delta = abs(max(self.giorni).daysTo(min(self.giorni))) + 1
-        print(delta)
-        if delta != len(self.giorni):
-            raise ValidationError('dates need to be in sequence')
-
+        try:
+            delta = abs(max(self.giorni).daysTo(min(self.giorni))) + 1
+            print(delta)
+            if delta != len(self.giorni):
+                raise ValidationError('dates need to be in sequence')
+        except ValueError:
+            return
     #### COMPUTE ####
 
 

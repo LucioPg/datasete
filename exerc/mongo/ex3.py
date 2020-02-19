@@ -28,6 +28,12 @@ if __name__ == '__main__':
             ospite = queries_ospite(identificativo=identificativo)
         return DatePrenotazioni.objects.get(ospite=ospite)
 
+    def queries_booked(ospite=None, identificativo=None, dates=None):
+        if dates:
+            if not ospite and identificativo:
+                ospite = queries_ospite(identificativo=identificativo)
+            return Prenotazione.objects.get(ospite=ospite, giorni=dates)
+
     def update_ospite_dates(ospite, dates):
         ospite.giorni.append(dates)
         ospite.save()
@@ -65,30 +71,33 @@ if __name__ == '__main__':
             return print('dates are mandatory, if an instance of user was present it has been aborted')
 
 
-    def un_book(ospite=None, identificativo=None, telefono=None, dates=None, _all=False):
+    def un_book(ospite=None, identificativo=None, dates=None, prenotazione=None):
         if ospite or identificativo:
             if not ospite and identificativo:
                 ospite = queries_ospite(identificativo=identificativo)
-            if _all:  # check if delete all the dates
+
+            if not prenotazione and dates:  # check if delete all the dates
                 for date in DatePrenotazioni.objects(ospite=ospite):
                     ospite.giorni.remove(date)  # removing references in user document
+                    try:
+                        # Prenotazione.objects.get(giorni=date).delete()
+                        for prenotazione in Prenotazione.objects(giorni=date):
+                            prenotazione.delete()
+                            # if not prenotazione.giorni:
+                            #     prenotazione.delete()
+                            # else:
+                            #     print(prenotazione.giorni.giorni)
+                    except Exception as e:
+                        print('errore cancellazione prenotazione ', e)
                     date.delete()
                 ospite.save()
             else:
-                if dates:
-                    for date_doc in DatePrenotazioni.objects(ospite=ospite):  # search for dates documents
-                        for data in dates:
-                            if data in date_doc.giorni:
-                                date_doc.giorni.remove(data)  # remove the dates passed into the list
-                                for user_date in ospite.giorni:  # removing references in user document
-                                    if data in user_date.giorni:
-                                        user_date.giorni.remove(data)
-                        date_doc.save()
-                    ospite.save()
+                prenotazione_giorni = prenotazione.giorni
+                ospite.giorni.remove(prenotazione_giorni)
+                date_doc = DatePrenotazioni.objects.get(giorni=prenotazione_giorni)
+                date_doc.delete()
+                prenotazione.delete()
 
-
-                else:
-                    return print('nothing to unbook')
 
     def delete_ospite(ospite=None, identificativo=None, telefono=None):
         if not ospite and identificativo:
@@ -107,12 +116,13 @@ if __name__ == '__main__':
         if dates_to_update:
             un_book(ospite=ospite, _all=True)
             book(ospite=ospite, dates=dates_to_update)
-            # create_prenotazione_doc(ospite)
+            create_prenotazione_doc(ospite)
         else:
             print('date di prenotazione necessarie')
             # create_prenotazione_doc(ospite)
 
-    book(nome='Pepped', cognome='sotto', identificativo='Peppedsotto111', telefono='111', dates=dateList)
+    # book(nome='Pepped', cognome='sotto', identificativo='Peppedsotto111', telefono='111', dates=dateList)
+    un_book(identificativo='Peppedsotto111', dates=dateList)
     # delete_ospite(queries_ospite('Peppedsotto111'))
     for obj in Prenotazione.objects():
         print('#'*10)
