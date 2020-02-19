@@ -21,6 +21,7 @@ def mongo_check_connection(database='test_db',
             _password = urllib.parse.quote_plus(password)
             client = pymongo.MongoClient(f'mongodb://{name}:{password}@{host}:{port}',
                                          serverSelectionTimeoutMS=timeout)
+
             info = client.server_info()
             if print_dbg:
                 print('client.server_info() ', info)
