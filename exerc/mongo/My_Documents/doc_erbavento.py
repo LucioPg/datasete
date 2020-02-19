@@ -17,7 +17,6 @@ class QDateField(DateTimeField):
         return datetime(pyValue.year, pyValue.month, pyValue.day)
 
     def to_python(self, value):
-        print(value)
         if not isinstance(value, QDate):
             qdate = QDate(value.year, value.month, value.day)
             return qdate
@@ -44,7 +43,7 @@ class Prenotazione(Document):
     lordo = FloatField(default=0.0)
     netto = FloatField(default=0.0)
     note = StringField(max_length=200)
-    arrivo = QDateField(required=True, unique=1)  # needs to be computed
+    arrivo = QDateField(required=True)  # needs to be computed
     ultimo_giorno = QDateField(required=True)  # needs to be computed
     giorno_pulizie = QDateField(required=True)  # needs to be computed
 
@@ -76,16 +75,12 @@ class Prenotazione(Document):
 
     #### COMPUTED #####
     def _compute_giorni(self):
-        # self.giorni += [data for data in self.ospite_id.giorni[-1].giorni]
-        self.giorni = self.ospite_id.giorni[-1]
-        self._giorni = self.ospite_id.giorni[-1].giorni
+        self._giorni = self.giorni.giorni
 
     def _compute_arrivo(self):
-        # self.arrivo = min(self.giorni[-1].giorni)
         self.arrivo = min(self._giorni)
 
     def _compute_ultimo_giorno(self):
-        # self.ultimo_giorno = max(self.giorni[-1].giorni)
         self.ultimo_giorno = max(self._giorni)
 
     def _compute_giorno_pulizie(self):
@@ -124,7 +119,7 @@ class Prenotazione(Document):
         user_dict = self.ospite_id.identificativo
         doc = {
             'user': user_dict,
-            'giorni': self.giorni
+            'giorni': self.giorni.giorni
         }
         return pprint(doc)
 
@@ -136,7 +131,7 @@ class Ospite(Document):
     telefono = StringField(required=1)
     identificativo = StringField(required=True, unique=True)  #needs to be computed
     email = EmailField()
-    giorni = ListField(ReferenceField('DatePrenotazioni'), reverse_delete_rule=CASCADE)
+    prenotazioni = ListField(ReferenceField('Prenotazione'), reverse_delete_rule=CASCADE)
     arrivo = QDateField(required=False, unique=1)  # needs to be referenced
     partenza = QDateField(required=False)  # needs to be  referenced
     cliente = BooleanField(default=False)
@@ -169,6 +164,7 @@ class DatePrenotazioni(Document):
         'Bassa'
     ]
     ospite = ReferenceField('Ospite')
+    prenotazione = ReferenceField('Prenotazione')
     giorni = ListField(QDateField(), unique=True)
     totale_ospiti = IntField(default=1)
     totale_bambini = IntField(default=0)
@@ -189,11 +185,10 @@ class DatePrenotazioni(Document):
         # delta = (max(self.giorni) - min(self.giorni)).days + 1  # the difference returns a timedelta
         try:
             delta = abs(max(self.giorni).daysTo(min(self.giorni))) + 1
-            print(delta)
             if delta != len(self.giorni):
                 raise ValidationError('dates need to be in sequence')
-        except ValueError:
-            return
+        except ValueError as e:
+            return print(e)
     #### COMPUTE ####
 
 
