@@ -5,7 +5,12 @@ from PyQt5.QtCore import QDate
 from mongoengine import *
 from pprint import pprint
 
-connect('test_db', host='localhost', port=27017)
+connect('test_db',
+        host='localhost',
+        port=27017,
+        name='admin',
+        password ='admin')
+
 print(User().list_indexes())
 
 # dateList = [datetime.date(2020,8,31), datetime.date(2020,9,1), datetime.date(2020,9,2)]  # changed from datetime.datetime
